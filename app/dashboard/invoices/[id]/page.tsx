@@ -57,7 +57,7 @@ export default function InvoiceDetailPage({ params }: { params: Promise<{ id: st
   }
 
   const handlePrint = useReactToPrint({
-    content: () => invoiceRef.current,
+    contentRef: invoiceRef,
   })
 
   if (loading) {
