@@ -9,6 +9,7 @@ import {
   UsersIcon,
   ReceiptIcon,
   SettingsIcon,
+  UserCircle,
 } from "lucide-react"
 
 import { useAuth } from "@/lib/auth-context"
@@ -52,6 +53,11 @@ const navItems = {
       title: "Services",
       url: "/dashboard/services",
       icon: BriefcaseIcon,
+    },
+    {
+      title: "Account",
+      url: "/dashboard/account",
+      icon: UserCircle,
     },
   ],
   adminMain: [
@@ -119,10 +125,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/dashboard">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                  <span className="text-sm font-bold">BP</span>
-                </div>
-                <span className="text-base font-semibold">Byte Pro</span>
+                <img 
+                  src="https://i.postimg.cc/JhLLjxH8/darkbyte-premium.gif" 
+                  alt="DarkByte Premium" 
+                  className="h-8 w-8 rounded-md object-contain"
+                />
+                <span className="text-base font-semibold">DarkByte Premium</span>
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>
