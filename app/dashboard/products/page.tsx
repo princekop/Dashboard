@@ -154,7 +154,7 @@ export default function ProductsPage() {
                             <Cpu className="h-5 w-5 text-primary" />
                           </div>
                           <div className="flex-1">
-                            <p className="font-semibold text-sm">{product.cpu} vCPU Cores</p>
+                            <p className="font-semibold text-sm">{product.cpu * 100}% CPU</p>
                             <p className="text-xs text-muted-foreground">Dedicated Processing</p>
                           </div>
                           <Check className="h-4 w-4 text-green-600" />

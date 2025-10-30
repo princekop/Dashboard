@@ -108,7 +108,7 @@ export function ShoppingCart() {
                     <div className="flex-1">
                       <h3 className="font-semibold">{item.product.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {item.product.ram}GB RAM • {item.product.cpu} CPU • {item.product.storage}GB Storage
+                        {item.product.ram}GB RAM • {item.product.cpu * 100}% CPU • {item.product.storage}GB Storage
                       </p>
                       <p className="text-xs text-muted-foreground mt-1 capitalize">
                         Billing: {item.product.billing}
