@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Plus, Edit, Trash2, Server } from "lucide-react"
+import { Plus, Edit, Trash2, Server, GripVertical } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
 import { useState, useEffect } from "react"
@@ -19,11 +19,14 @@ interface Product {
   billing: string
   duration: number
   isActive: boolean
+  displayOrder: number
 }
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
+  const [draggedItem, setDraggedItem] = useState<Product | null>(null)
+  const [savingOrder, setSavingOrder] = useState(false)
 
   useEffect(() => {
     fetchProducts()
@@ -33,7 +36,11 @@ export default function AdminProductsPage() {
     try {
       const res = await fetch('/api/admin/products')
       const data = await res.json()
-      setProducts(data.products || [])
+      // Sort by displayOrder
+      const sortedProducts = (data.products || []).sort(
+        (a: Product, b: Product) => (a.displayOrder || 0) - (b.displayOrder || 0)
+      )
+      setProducts(sortedProducts)
     } catch (error) {
       console.error('Failed to fetch products:', error)
     } finally {
@@ -65,14 +72,74 @@ export default function AdminProductsPage() {
     }
   }
 
+  const handleDragStart = (e: React.DragEvent, product: Product) => {
+    setDraggedItem(product)
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+  }
+
+  const handleDrop = async (e: React.DragEvent, targetProduct: Product) => {
+    e.preventDefault()
+    
+    if (!draggedItem || draggedItem.id === targetProduct.id) return
+
+    const newProducts = [...products]
+    const draggedIndex = newProducts.findIndex(p => p.id === draggedItem.id)
+    const targetIndex = newProducts.findIndex(p => p.id === targetProduct.id)
+
+    // Remove dragged item and insert at target position
+    newProducts.splice(draggedIndex, 1)
+    newProducts.splice(targetIndex, 0, draggedItem)
+
+    // Update displayOrder for all products
+    const updatedProducts = newProducts.map((product, index) => ({
+      ...product,
+      displayOrder: index
+    }))
+
+    setProducts(updatedProducts)
+    setDraggedItem(null)
+
+    // Save new order to backend
+    setSavingOrder(true)
+    try {
+      await fetch('/api/admin/products/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productOrders: updatedProducts.map((p, index) => ({
+            id: p.id,
+            displayOrder: index
+          }))
+        })
+      })
+    } catch (error) {
+      console.error('Failed to save order:', error)
+      fetchProducts() // Revert on error
+    } finally {
+      setSavingOrder(false)
+    }
+  }
+
+  const handleDragEnd = () => {
+    setDraggedItem(null)
+  }
+
   return (
     <div className="flex flex-1 flex-col gap-6 p-6">
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-2">
           <h1 className="text-3xl font-bold tracking-tight">Manage Products</h1>
           <p className="text-muted-foreground">
-            Create and manage hosting products
+            Create and manage hosting products. Drag to reorder.
           </p>
+          {savingOrder && (
+            <p className="text-sm text-primary">Saving order...</p>
+          )}
         </div>
         <Link href="/admin/products/new">
           <Button>
@@ -116,8 +183,23 @@ export default function AdminProductsPage() {
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {products.map((product) => (
-            <Card key={product.id} className={!product.isActive ? 'opacity-60' : ''}>
+            <Card 
+              key={product.id} 
+              className={`cursor-move transition-all ${
+                !product.isActive ? 'opacity-60' : ''
+              } ${
+                draggedItem?.id === product.id ? 'opacity-50 scale-95' : ''
+              }`}
+              draggable
+              onDragStart={(e) => handleDragStart(e, product)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, product)}
+              onDragEnd={handleDragEnd}
+            >
               <CardHeader>
+                <div className="absolute top-2 left-2 p-1 bg-background/80 rounded cursor-grab active:cursor-grabbing">
+                  <GripVertical className="h-4 w-4 text-muted-foreground" />
+                </div>
                 {product.imageUrl && (
                   product.imageUrl.match(/\.(mp4|webm|ogg)$/i) ? (
                     <video

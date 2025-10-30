@@ -10,6 +10,7 @@ import {
   ReceiptIcon,
   SettingsIcon,
   UserCircle,
+  Bell,
 } from "lucide-react"
 
 import { useAuth } from "@/lib/auth-context"
@@ -87,6 +88,11 @@ const navItems = {
           icon: BriefcaseIcon,
         },
         {
+          title: "Announcements",
+          url: "/admin/announcements",
+          icon: Bell,
+        },
+        {
           title: "Customer Chats",
           url: "/admin/chats",
           icon: SettingsIcon,
@@ -112,7 +118,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const userData = {
     name: user?.name || "User",
     email: user?.email || "user@example.com",
-    avatar: "",
+    avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`,
   }
 
   return (

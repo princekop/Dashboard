@@ -31,17 +31,23 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { orderId, message } = await request.json()
+    const { orderId, message, mediaUrl, mediaType } = await request.json()
 
-    if (!message?.trim()) {
-      return NextResponse.json({ error: 'Message is required' }, { status: 400 })
+    if (!message?.trim() && !mediaUrl) {
+      return NextResponse.json({ error: 'Message or media is required' }, { status: 400 })
     }
+
+    // Set expiration time for media (24 hours from now)
+    const expiresAt = mediaUrl ? new Date(Date.now() + 24 * 60 * 60 * 1000) : null
 
     const chatMessage = await prisma.chatMessage.create({
       data: {
         orderId,
         userId: adminId,
-        message: message.trim(),
+        message: message?.trim() || '',
+        mediaUrl: mediaUrl || null,
+        mediaType: mediaType || null,
+        expiresAt,
         isAdmin: true
       }
     })
@@ -50,5 +56,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Failed to send message:', error)
     return NextResponse.json({ error: 'Failed to send message' }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }

@@ -74,7 +74,7 @@ export default function EditProductPage() {
         body: JSON.stringify({
           ...formData,
           ram: parseInt(formData.ram),
-          cpu: parseInt(formData.cpu),
+          cpu: parseFloat(formData.cpu),
           storage: parseInt(formData.storage),
           price: parseFloat(formData.price),
           duration: parseInt(formData.duration)
@@ -234,11 +234,15 @@ export default function EditProductPage() {
                 <Input
                   id="cpu"
                   type="number"
-                  placeholder="2"
+                  step="0.1"
+                  placeholder="1.5"
                   value={formData.cpu}
                   onChange={(e) => setFormData({ ...formData, cpu: e.target.value })}
                   required
                 />
+                <p className="text-xs text-muted-foreground">
+                  Supports decimals (e.g., 1.5, 2.5)
+                </p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="storage">Storage (GB) *</Label>

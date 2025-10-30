@@ -15,6 +15,7 @@ import GhostLoader from "@/components/ghost-loader"
 import WalkingLoader from "@/components/walking-loader"
 import RedGhostLoader from "@/components/red-ghost-loader"
 import RocketLoader from "@/components/rocket-loader"
+import { AnnouncementPopup } from "@/components/announcement-popup"
 
 interface DashboardStats {
   activeServices: number
@@ -108,6 +109,7 @@ export default function DashboardPage() {
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
+        <AnnouncementPopup />
         <div className="flex flex-1 flex-col">
           <div className="flex flex-1 flex-col gap-6 p-6">
             <div className="flex flex-col gap-2">
