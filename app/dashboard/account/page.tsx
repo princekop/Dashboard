@@ -123,11 +123,13 @@ export default function AccountPage() {
     )
   }
 
-  const joinedDate = new Date(user.createdAt || Date.now()).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
+  const joinedDate = user.createdAt 
+    ? new Date(user.createdAt).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      })
+    : 'Recently'
 
   return (
     <SidebarProvider>
