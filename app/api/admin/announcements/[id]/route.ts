@@ -31,8 +31,9 @@ async function isAdmin(userId: string) {
 // PATCH update announcement
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const userId = await getUserId()
   if (!userId || !(await isAdmin(userId))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -43,7 +44,7 @@ export async function PATCH(
     const { title, message, type, priority, isActive } = body
 
     const announcement = await prisma.announcement.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...(title !== undefined && { title }),
         ...(message !== undefined && { message }),
@@ -68,8 +69,9 @@ export async function PATCH(
 // DELETE announcement
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params
   const userId = await getUserId()
   if (!userId || !(await isAdmin(userId))) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -77,7 +79,7 @@ export async function DELETE(
 
   try {
     await prisma.announcement.delete({
-      where: { id: params.id }
+      where: { id }
     })
 
     return NextResponse.json({ success: true })
