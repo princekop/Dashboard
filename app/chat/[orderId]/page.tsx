@@ -95,7 +95,7 @@ export default function ChatPage() {
         <CardHeader>
           <CardTitle>Chat with Admin Support</CardTitle>
           <CardDescription>
-            Order #{orderId.slice(0, 8)} • We'll respond shortly
+            Order #{orderId.slice(0, 8)} • We&apos;ll respond shortly
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">

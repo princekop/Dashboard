@@ -377,7 +377,7 @@ export default function DashboardPage() {
                           <Package className="h-8 w-8 text-muted-foreground" />
                         </div>
                         <p className="text-sm font-medium text-muted-foreground">No orders found</p>
-                        <p className="text-xs text-muted-foreground mt-1">Try adjusting your search: "{searchTerm}"</p>
+                        <p className="text-xs text-muted-foreground mt-1">Try adjusting your search: &quot;{searchTerm}&quot;</p>
                       </div>
                     )}
                   </div>
