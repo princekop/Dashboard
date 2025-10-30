@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useAuth } from "@/lib/auth-context"
 import { useEffect, useState } from "react"
 import { 
@@ -20,7 +21,9 @@ import {
   Check,
   Sparkles,
   Lock,
-  Save
+  Save,
+  Image as ImageIcon,
+  X
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -30,6 +33,23 @@ export default function AccountPage() {
   const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState(user?.name || "")
+  const [showAvatarPicker, setShowAvatarPicker] = useState(false)
+
+  // Default avatars
+  const defaultAvatars = [
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Felix",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka",
+    "https://api.dicebear.com/7.x/avataaars/svg?seed=Precious",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=Dusty",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=Luna",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=Max",
+    "https://api.dicebear.com/7.x/personas/svg?seed=Oliver",
+    "https://api.dicebear.com/7.x/personas/svg?seed=Emma",
+    "https://api.dicebear.com/7.x/lorelei/svg?seed=Sammy",
+    "https://api.dicebear.com/7.x/lorelei/svg?seed=Charlie",
+    "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Happy",
+    "https://api.dicebear.com/7.x/fun-emoji/svg?seed=Cool",
+  ]
 
   useEffect(() => {
     if (user) {
@@ -83,12 +103,37 @@ export default function AccountPage() {
       if (res.ok) {
         setAvatar(data.avatarUrl)
         toast.success('Avatar updated successfully!')
+        setTimeout(() => window.location.reload(), 1000)
       } else {
         toast.error(data.error || 'Failed to upload avatar')
       }
     } catch (error) {
       console.error('Avatar upload error:', error)
       toast.error('Failed to upload avatar')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const selectDefaultAvatar = async (avatarUrl: string) => {
+    setUploading(true)
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: avatarUrl }),
+      })
+
+      if (res.ok) {
+        setAvatar(avatarUrl)
+        setShowAvatarPicker(false)
+        toast.success('Avatar updated successfully!')
+        setTimeout(() => window.location.reload(), 1000)
+      } else {
+        toast.error('Failed to update avatar')
+      }
+    } catch (error) {
+      toast.error('Failed to update avatar')
     } finally {
       setUploading(false)
     }
@@ -154,24 +199,17 @@ export default function AccountPage() {
                             {(user.name || user.email).charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
-                        <label 
-                          htmlFor="avatar-upload" 
-                          className="absolute bottom-0 right-0 p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-lg"
+                        <Button
+                          onClick={() => setShowAvatarPicker(true)}
+                          className="absolute bottom-0 right-0 p-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-full h-10 w-10"
+                          disabled={uploading}
                         >
                           {uploading ? (
                             <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
                           ) : (
-                            <Upload className="h-4 w-4 text-white" />
+                            <Upload className="h-4 w-4" />
                           )}
-                          <input
-                            id="avatar-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleAvatarUpload}
-                            className="hidden"
-                            disabled={uploading}
-                          />
-                        </label>
+                        </Button>
                       </div>
                     </div>
 
@@ -340,6 +378,59 @@ export default function AccountPage() {
           </div>
         </div>
       </SidebarInset>
+
+      {/* Avatar Picker Dialog */}
+      <Dialog open={showAvatarPicker} onOpenChange={setShowAvatarPicker}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Choose Avatar</DialogTitle>
+            <DialogDescription>
+              Select a default avatar or upload your own image
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Upload Custom Avatar */}
+            <div className="space-y-2">
+              <Label htmlFor="custom-avatar-upload" className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4" />
+                Upload Custom Avatar
+              </Label>
+              <div className="flex gap-2">
+                <Input
+                  id="custom-avatar-upload"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  disabled={uploading}
+                  className="cursor-pointer"
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">Max size: 5MB. Supports JPG, PNG, GIF</p>
+            </div>
+
+            {/* Default Avatars Grid */}
+            <div className="space-y-2">
+              <Label>Or Choose a Default Avatar</Label>
+              <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
+                {defaultAvatars.map((avatarUrl, index) => (
+                  <button
+                    key={index}
+                    onClick={() => selectDefaultAvatar(avatarUrl)}
+                    disabled={uploading}
+                    className="relative group"
+                  >
+                    <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full opacity-0 group-hover:opacity-75 blur transition duration-200"></div>
+                    <Avatar className="h-16 w-16 ring-2 ring-background cursor-pointer hover:ring-4 hover:ring-primary transition-all">
+                      <AvatarImage src={avatarUrl} alt={`Avatar ${index + 1}`} />
+                    </Avatar>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </SidebarProvider>
   )
 }

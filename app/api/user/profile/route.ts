@@ -65,7 +65,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { name } = body
+    const { name, avatar } = body
 
     // Validate name
     if (name !== undefined) {
@@ -77,12 +77,19 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
+    // Validate avatar URL
+    if (avatar !== undefined && typeof avatar !== 'string') {
+      return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 })
+    }
+
     // Update user
+    const updateData: any = {}
+    if (name !== undefined) updateData.name = name.trim()
+    if (avatar !== undefined) updateData.avatar = avatar
+
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {
-        name: name?.trim(),
-      },
+      data: updateData,
       select: {
         id: true,
         name: true,
