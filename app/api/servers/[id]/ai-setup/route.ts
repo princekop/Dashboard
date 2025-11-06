@@ -4,6 +4,8 @@ import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 import axios from 'axios'
 import { pterodactylService } from '@/lib/pterodactyl'
+import { checkRateLimit, RATE_LIMITS, getRateLimitIdentifier } from '@/lib/rate-limit'
+import { handleApiError } from '@/lib/error-handler'
 
 const prisma = new PrismaClient()
 
@@ -188,6 +190,27 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Rate limiting
+    const rateLimitIdentifier = `ai-setup:${user.id}`
+    const rateLimit = checkRateLimit(rateLimitIdentifier, RATE_LIMITS.AI_SETUP)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { 
+          error: 'Rate limit exceeded',
+          details: `Please wait ${Math.ceil((rateLimit.resetTime - Date.now()) / 1000)} seconds before trying again`
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': String(RATE_LIMITS.AI_SETUP.maxRequests),
+            'X-RateLimit-Remaining': String(rateLimit.remaining),
+            'X-RateLimit-Reset': String(rateLimit.resetTime),
+          }
+        }
+      )
+    }
+
     const { id } = await params
     const server = await prisma.server.findUnique({
       where: { id }
@@ -279,7 +302,9 @@ PLUGIN RECOMMENDATIONS:
         {
           headers: {
             'Content-Type': 'application/json'
-          }
+          },
+          timeout: 15000, // 15 second timeout
+          validateStatus: (status) => status < 500 // Don't throw on 4xx errors
         }
       )
       console.log('Gemini API response received')
@@ -369,19 +394,6 @@ PLUGIN RECOMMENDATIONS:
     })
 
   } catch (error: any) {
-    console.error('AI setup failed:', error?.message || error)
-    
-    // Check for specific error types
-    if (error?.message?.includes('Authentication failed')) {
-      return NextResponse.json({ 
-        error: 'Authentication Error',
-        details: 'Failed to authenticate with Pterodactyl. Please contact an administrator.'
-      }, { status: 401 })
-    }
-    
-    return NextResponse.json({ 
-      error: 'Failed to process request',
-      details: error?.message || 'An unexpected error occurred'
-    }, { status: 500 })
+    return handleApiError(error, 'AI Setup')
   }
 }

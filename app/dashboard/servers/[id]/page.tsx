@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { ErrorBoundary } from '@/components/error-boundary'
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
@@ -108,12 +109,13 @@ export default function ServerManagePage() {
   }
 
   return (
-    <SidebarProvider>
-      <AppSidebar variant="inset" />
-      <SidebarInset className="flex flex-col h-screen relative" id="server-panel-container">
-        <SiteHeader />
-        <div className="flex flex-1 flex-col overflow-hidden">
+    <ErrorBoundary>
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset className="flex flex-col h-screen relative" id="server-panel-container">
+          <SiteHeader />
           <div className="flex flex-1 flex-col overflow-hidden">
+            <div className="flex flex-1 flex-col overflow-hidden">
             {/* Header */}
             <div className="border-b bg-gradient-to-br from-primary/10 via-primary/5 to-background px-6 py-5 flex-shrink-0 backdrop-blur-sm">
               <div className="flex items-start justify-between gap-6 flex-wrap">
@@ -333,9 +335,10 @@ export default function ServerManagePage() {
                 )}
               </div>
             </Tabs>
+            </div>
           </div>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+        </SidebarInset>
+      </SidebarProvider>
+    </ErrorBoundary>
   )
 }
