@@ -69,57 +69,89 @@ export async function POST(
     })
 
     let serversCreated = 0
+    const errors: string[] = []
+
+    console.log(`📦 Processing ${order.items.length} items for order ${id}`)
 
     // Create servers for each item
     for (const item of order.items) {
       const product = item.product
+      console.log(`🔄 Processing product: ${product.name}`)
       
-      // Check if user exists on Pterodactyl, create if not
-      let pteroUserId = await pterodactylService.getUserIdByEmail(order.user.email)
-      
-      if (!pteroUserId) {
-        pteroUserId = await pterodactylService.createUser(
-          order.user.email,
-          order.user.name || order.user.email.split('@')[0]
-        )
-      }
+      try {
+        // Check if user exists on Pterodactyl, create if not
+        console.log(`👤 Checking Pterodactyl user for: ${order.user.email}`)
+        let pteroUserId = await pterodactylService.getUserIdByEmail(order.user.email)
+        
+        if (!pteroUserId) {
+          console.log(`➕ Creating Pterodactyl user for: ${order.user.email}`)
+          pteroUserId = await pterodactylService.createUser(
+            order.user.email,
+            order.user.name || order.user.email.split('@')[0]
+          )
+          console.log(`✅ Pterodactyl user created with ID: ${pteroUserId}`)
+        } else {
+          console.log(`✅ Found existing Pterodactyl user ID: ${pteroUserId}`)
+        }
 
-      if (pteroUserId) {
+        if (!pteroUserId) {
+          const errorMsg = `Failed to get/create Pterodactyl user for ${order.user.email}`
+          console.error(`❌ ${errorMsg}`)
+          errors.push(errorMsg)
+          continue
+        }
+
         // Create server
         const serverName = `${product.name} - ${order.user.name || order.user.email.split('@')[0]}`
-        try {
-          const pteroServer = await pterodactylService.createServer(
-            pteroUserId,
-            serverName,
-            product.ram,
-            product.cpu,
-            product.storage
-          )
+        console.log(`🖥️ Creating Pterodactyl server: ${serverName}`)
+        
+        const pteroServer = await pterodactylService.createServer(
+          pteroUserId,
+          serverName,
+          product.ram,
+          product.cpu,
+          product.storage
+        )
 
-          if (pteroServer) {
-            // Save server to database
-            const expiresAt = new Date()
-            expiresAt.setDate(expiresAt.getDate() + product.duration)
-
-            await prisma.server.create({
-              data: {
-                userId: order.userId,
-                productId: product.id,
-                pterodactylId: pteroServer.id,
-                pterodactylIdentifier: pteroServer.identifier,
-                name: serverName,
-                status: 'active',
-                expiresAt
-              }
-            })
-            serversCreated++
-          }
-        } catch (serverError: any) {
-          console.error(`Failed to create server for product ${product.name}:`, serverError.message)
-          // Continue with other items even if one fails
+        if (!pteroServer) {
+          const errorMsg = `Pterodactyl server creation returned null for ${product.name}`
+          console.error(`❌ ${errorMsg}`)
+          errors.push(errorMsg)
+          continue
         }
+
+        console.log(`✅ Pterodactyl server created with ID: ${pteroServer.id}, Identifier: ${pteroServer.identifier}`)
+
+        // Save server to database
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + product.duration)
+
+        console.log(`💾 Saving server to database...`)
+        const dbServer = await prisma.server.create({
+          data: {
+            userId: order.userId,
+            productId: product.id,
+            pterodactylId: pteroServer.id,
+            pterodactylIdentifier: pteroServer.identifier,
+            name: serverName,
+            status: 'active',
+            expiresAt
+          }
+        })
+        
+        console.log(`✅ Server saved to database with ID: ${dbServer.id}`)
+        serversCreated++
+        
+      } catch (serverError: any) {
+        const errorMsg = `Failed to create server for ${product.name}: ${serverError.message}`
+        console.error(`❌ ${errorMsg}`)
+        console.error('Full error:', serverError)
+        errors.push(errorMsg)
+        // Continue with other items even if one fails
       }
     }
+
+    console.log(`📊 Summary: ${serversCreated} servers created, ${errors.length} errors`)
 
     // Mark order as completed and generate invoice
     await prisma.order.update({
@@ -194,8 +226,11 @@ export async function POST(
     return NextResponse.json({ 
       success: true,
       serversCreated,
+      errors: errors.length > 0 ? errors : undefined,
       invoiceGenerated: true,
-      message: `Order verified successfully. ${serversCreated} server(s) created.`
+      message: errors.length > 0 
+        ? `Order verified. ${serversCreated} server(s) created, ${errors.length} error(s) occurred.`
+        : `Order verified successfully. ${serversCreated} server(s) created.`
     })
   } catch (error) {
     console.error('Failed to verify order:', error)
