@@ -21,7 +21,7 @@ async function getUserFromToken() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken()
@@ -29,8 +29,9 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    const { id } = await params
     const server = await prisma.server.findUnique({
-      where: { id: params.id },
+      where: { id },
       include: { product: true }
     })
 
