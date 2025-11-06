@@ -23,7 +23,9 @@ import {
   Lock,
   Save,
   Image as ImageIcon,
-  X
+  X,
+  Code,
+  Terminal as TerminalIcon
 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -34,6 +36,7 @@ export default function AccountPage() {
   const [saving, setSaving] = useState(false)
   const [name, setName] = useState(user?.name || "")
   const [showAvatarPicker, setShowAvatarPicker] = useState(false)
+  const [devMode, setDevMode] = useState(user?.devMode || false)
 
   // Default avatars
   const defaultAvatars = [
@@ -67,8 +70,31 @@ export default function AccountPage() {
       if (data.name) {
         setName(data.name)
       }
+      if (data.devMode !== undefined) {
+        setDevMode(data.devMode)
+      }
     } catch (error) {
       console.error('Failed to fetch profile:', error)
+    }
+  }
+
+  const toggleDevMode = async () => {
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ devMode: !devMode }),
+      })
+
+      if (res.ok) {
+        setDevMode(!devMode)
+        toast.success(`Developer Mode ${!devMode ? 'enabled' : 'disabled'}!`)
+        setTimeout(() => window.location.reload(), 1000)
+      } else {
+        toast.error('Failed to toggle developer mode')
+      }
+    } catch (error) {
+      toast.error('Failed to toggle developer mode')
     }
   }
 
@@ -342,6 +368,21 @@ export default function AccountPage() {
                       <Badge variant={avatar ? "default" : "secondary"}>
                         {avatar ? "Uploaded" : "Not Set"}
                       </Badge>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10 border border-purple-500/20">
+                      <div className="flex items-center gap-2">
+                        <Code className="h-4 w-4 text-purple-500" />
+                        <span className="text-sm font-medium">Developer Mode</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant={devMode ? "default" : "outline"}
+                        onClick={toggleDevMode}
+                        className={devMode ? "bg-purple-600 hover:bg-purple-700" : ""}
+                      >
+                        {devMode ? "Enabled" : "Disabled"}
+                      </Button>
                     </div>
                   </div>
 

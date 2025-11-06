@@ -6,11 +6,12 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Server, Key, ExternalLink, Clock, Cpu, HardDrive, Activity, Zap, Shield } from "lucide-react"
+import { Server, Key, ExternalLink, Clock, Cpu, HardDrive, Activity, Zap, Shield, Settings } from "lucide-react"
 import { useState, useEffect } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useRouter } from 'next/navigation'
 
 interface ServiceServer {
   id: string
@@ -28,8 +29,8 @@ interface ServiceServer {
 }
 
 export default function ServicesPage() {
+  const router = useRouter()
   const [servers, setServers] = useState<ServiceServer[]>([])
-  const [selectedServer, setSelectedServer] = useState<ServiceServer | null>(null)
   const [showResetPassword, setShowResetPassword] = useState(false)
   const [loading, setLoading] = useState(true)
   const [pteroAccount, setPteroAccount] = useState<any>(null)
@@ -92,6 +93,7 @@ export default function ServicesPage() {
   }
 
   return (
+    <>
     <SidebarProvider>
       <AppSidebar variant="inset" />
       <SidebarInset>
@@ -237,14 +239,26 @@ export default function ServicesPage() {
                       </div>
                     </CardContent>
                     <CardFooter className="relative z-10 border-t border-primary/10">
-                      {server.pterodactylIdentifier && (
-                        <Button variant="outline" className="w-full hover:bg-primary/10 hover:border-primary/50 transition-all shadow-sm" asChild>
-                          <a href={`${pteroAccount?.panelUrl}/server/${server.pterodactylIdentifier}`} target="_blank" rel="noopener">
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Manage Server
-                          </a>
+                      <div className="w-full flex gap-2">
+                        <Button 
+                          variant="default" 
+                          className="flex-1 shadow-sm" 
+                          onClick={() => {
+                            router.push(`/dashboard/servers/${server.id}`)
+                          }}
+                          disabled={!server.pterodactylIdentifier}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          {server.pterodactylIdentifier ? 'Manage' : 'Setting up...'}
                         </Button>
-                      )}
+                        {server.pterodactylIdentifier && pteroAccount?.panelUrl && (
+                          <Button variant="outline" className="hover:bg-primary/10 hover:border-primary/50 transition-all shadow-sm" asChild>
+                            <a href={`${pteroAccount.panelUrl}/server/${server.pterodactylIdentifier}`} target="_blank" rel="noopener">
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          </Button>
+                        )}
+                      </div>
                     </CardFooter>
                   </Card>
                 ))}
@@ -279,6 +293,8 @@ export default function ServicesPage() {
           </div>
         </DialogContent>
       </Dialog>
+
     </SidebarProvider>
+    </>
   )
 }

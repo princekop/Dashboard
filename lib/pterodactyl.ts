@@ -360,6 +360,505 @@ export class PterodactylService {
     }
     return password
   }
+
+  // Client API methods for server management
+  async getServerDetails(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to get server details:', error)
+      throw error
+    }
+  }
+
+  async getServerResources(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/resources`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to get server resources:', error)
+      throw error
+    }
+  }
+
+  async sendPowerAction(identifier: string, userApiKey: string, action: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/power`,
+        { signal: action },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to send power action:', error)
+      throw error
+    }
+  }
+
+  async sendCommand(identifier: string, userApiKey: string, command: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/command`,
+        { command },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to send command:', error)
+      throw error
+    }
+  }
+
+  async listFiles(identifier: string, userApiKey: string, directory: string = '/'): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      console.log(`Listing files for server ${identifier}, directory: ${directory}`)
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/list?directory=${encodeURIComponent(directory)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error: any) {
+      console.error('Failed to list files:', error?.response?.status, error?.response?.statusText)
+      throw error
+    }
+  }
+
+  async getFileContents(identifier: string, userApiKey: string, file: string): Promise<string> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/contents?file=${encodeURIComponent(file)}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to get file contents:', error)
+      throw error
+    }
+  }
+
+  async writeFile(identifier: string, userApiKey: string, file: string, content: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/write?file=${encodeURIComponent(file)}`,
+        content,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'text/plain',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to write file:', error)
+      throw error
+    }
+  }
+
+  async deleteFile(identifier: string, userApiKey: string, root: string, files: string[]): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/delete`,
+        { root, files },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to delete file:', error)
+      throw error
+    }
+  }
+
+  async createFolder(identifier: string, userApiKey: string, root: string, name: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/create-folder`,
+        { root, name },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to create folder:', error)
+      throw error
+    }
+  }
+
+  async renameFile(identifier: string, userApiKey: string, root: string, files: Array<{from: string, to: string}>): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.put(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/rename`,
+        { root, files },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to rename file:', error)
+      throw error
+    }
+  }
+
+  async compressFiles(identifier: string, userApiKey: string, root: string, files: string[]): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/compress`,
+        { root, files },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to compress files:', error)
+      throw error
+    }
+  }
+
+  async decompressFile(identifier: string, userApiKey: string, root: string, file: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/files/decompress`,
+        { root, file },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to decompress file:', error)
+      throw error
+    }
+  }
+
+  async listBackups(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/backups`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to list backups:', error)
+      throw error
+    }
+  }
+
+  async createBackup(identifier: string, userApiKey: string, name?: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/backups`,
+        name ? { name } : {},
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to create backup:', error)
+      throw error
+    }
+  }
+
+  async deleteBackup(identifier: string, userApiKey: string, backupUuid: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.delete(
+        `${config.panelUrl}/api/client/servers/${identifier}/backups/${backupUuid}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to delete backup:', error)
+      throw error
+    }
+  }
+
+  async restoreBackup(identifier: string, userApiKey: string, backupUuid: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/backups/${backupUuid}/restore`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to restore backup:', error)
+      throw error
+    }
+  }
+
+  async getBackupDownloadUrl(identifier: string, userApiKey: string, backupUuid: string): Promise<string> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/backups/${backupUuid}/download`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data.attributes.url
+    } catch (error) {
+      console.error('Failed to get backup download URL:', error)
+      throw error
+    }
+  }
+
+  async listDatabases(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/databases`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to list databases:', error)
+      throw error
+    }
+  }
+
+  async createDatabase(identifier: string, userApiKey: string, database: string, remote: string = '%'): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/databases`,
+        { database, remote },
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to create database:', error)
+      throw error
+    }
+  }
+
+  async deleteDatabase(identifier: string, userApiKey: string, databaseId: string): Promise<void> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      await axios.delete(
+        `${config.panelUrl}/api/client/servers/${identifier}/databases/${databaseId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+    } catch (error) {
+      console.error('Failed to delete database:', error)
+      throw error
+    }
+  }
+
+  async rotateDatabasePassword(identifier: string, userApiKey: string, databaseId: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.post(
+        `${config.panelUrl}/api/client/servers/${identifier}/databases/${databaseId}/rotate-password`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to rotate database password:', error)
+      throw error
+    }
+  }
+
+  async listAllocations(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/network/allocations`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to list allocations:', error)
+      throw error
+    }
+  }
+
+  async getWebSocketCredentials(identifier: string, userApiKey: string): Promise<any> {
+    const config = await this.getConfig()
+    if (!config) throw new Error('Pterodactyl not configured')
+
+    try {
+      const response = await axios.get(
+        `${config.panelUrl}/api/client/servers/${identifier}/websocket`,
+        {
+          headers: {
+            'Authorization': `Bearer ${userApiKey}`,
+            'Accept': 'application/json'
+          }
+        }
+      )
+      return response.data
+    } catch (error) {
+      console.error('Failed to get websocket credentials:', error)
+      throw error
+    }
+  }
 }
 
 export const pterodactylService = new PterodactylService()

@@ -40,7 +40,9 @@ export async function POST(request: Request) {
         id: user.id,
         email: user.email,
         name: user.name,
+        avatar: user.avatar,
         isAdmin: user.isAdmin,
+        devMode: user.devMode,
       },
       token,
     })

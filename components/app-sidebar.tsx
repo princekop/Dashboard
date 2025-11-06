@@ -115,11 +115,11 @@ const navItems = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useAuth()
 
-  const userData = {
+  const userData = React.useMemo(() => ({
     name: user?.name || "User",
     email: user?.email || "user@example.com",
     avatar: user?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.email || 'default'}`,
-  }
+  }), [user?.name, user?.email, user?.avatar])
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -147,7 +147,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {user?.isAdmin && <NavMain items={navItems.adminMain} />}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        <NavUser key={user?.avatar} user={userData} />
       </SidebarFooter>
     </Sidebar>
   )

@@ -36,6 +36,7 @@ export async function GET(request: NextRequest) {
         email: true,
         avatar: true,
         isAdmin: true,
+        devMode: true,
         createdAt: true,
       }
     })
@@ -65,7 +66,7 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { name, avatar } = body
+    const { name, avatar, devMode } = body
 
     // Validate name
     if (name !== undefined) {
@@ -86,6 +87,7 @@ export async function PATCH(request: NextRequest) {
     const updateData: any = {}
     if (name !== undefined) updateData.name = name.trim()
     if (avatar !== undefined) updateData.avatar = avatar
+    if (devMode !== undefined) updateData.devMode = devMode
 
     const user = await prisma.user.update({
       where: { id: userId },
@@ -96,6 +98,7 @@ export async function PATCH(request: NextRequest) {
         email: true,
         avatar: true,
         isAdmin: true,
+        devMode: true,
         createdAt: true,
       }
     })

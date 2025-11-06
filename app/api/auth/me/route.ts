@@ -29,7 +29,9 @@ export async function GET(request: Request) {
         id: true,
         email: true,
         name: true,
+        avatar: true,
         isAdmin: true,
+        devMode: true,
         createdAt: true,
       },
     })

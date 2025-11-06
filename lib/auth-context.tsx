@@ -10,6 +10,7 @@ interface User {
   name: string | null
   avatar?: string | null
   isAdmin: boolean
+  devMode?: boolean
   createdAt?: string
 }
 
