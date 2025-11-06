@@ -81,6 +81,20 @@ export async function POST(
       try {
         // Check if user exists on Pterodactyl, create if not
         console.log(`👤 Checking Pterodactyl user for: ${order.user.email}`)
+        
+        // First, ensure settings exist in database
+        let settings = await prisma.pterodactylSettings.findFirst({ where: { isActive: true } })
+        if (!settings) {
+          console.log(`⚙️ Creating Pterodactyl settings in database...`)
+          settings = await prisma.pterodactylSettings.create({
+            data: {
+              panelUrl: 'https://pro.darkbyte.in',
+              apiKey: adminApiKey,
+              isActive: true
+            }
+          })
+        }
+        
         let pteroUserId = await pterodactylService.getUserIdByEmail(order.user.email)
         
         if (!pteroUserId) {

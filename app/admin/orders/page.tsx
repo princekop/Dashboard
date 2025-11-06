@@ -192,31 +192,56 @@ export default function AdminOrdersPage() {
                   </div>
                 )}
 
-                {order.paymentStatus === 'pending' && (
-                  <div className="flex gap-2 pt-4 border-t">
-                    <Button 
-                      onClick={() => verifyPayment(order.id)}
-                      disabled={loading}
-                      className="flex-1"
-                    >
-                      <Check className="h-4 w-4 mr-2" />
-                      Verify & Create Server
-                    </Button>
-                    <Button 
-                      variant="destructive"
-                      onClick={() => rejectPayment(order.id)}
-                    >
-                      <X className="h-4 w-4 mr-2" />
-                      Reject
-                    </Button>
-                    <Link href={`/admin/chats?orderId=${order.id}`}>
-                      <Button variant="outline">
-                        <MessageSquare className="h-4 w-4 mr-2" />
-                        Chat
+                <div className="flex gap-2 pt-4 border-t flex-wrap">
+                  {order.paymentStatus === 'pending' && (
+                    <>
+                      <Button 
+                        onClick={() => verifyPayment(order.id)}
+                        disabled={loading}
+                        className="flex-1 min-w-[150px]"
+                      >
+                        <Check className="h-4 w-4 mr-2" />
+                        Verify & Create Server
                       </Button>
-                    </Link>
-                  </div>
-                )}
+                      <Button 
+                        variant="destructive"
+                        onClick={() => rejectPayment(order.id)}
+                        disabled={loading}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Reject
+                      </Button>
+                    </>
+                  )}
+                  <Link href={`/admin/chats?orderId=${order.id}`}>
+                    <Button variant="outline">
+                      <MessageSquare className="h-4 w-4 mr-2" />
+                      Chat
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline"
+                    onClick={async () => {
+                      if (confirm(`Delete order #${order.id.slice(0, 8)}? This action cannot be undone!`)) {
+                        try {
+                          const res = await fetch(`/api/admin/orders/${order.id}`, { method: 'DELETE' })
+                          if (res.ok) {
+                            alert('Order deleted successfully')
+                            fetchOrders()
+                          } else {
+                            alert('Failed to delete order')
+                          }
+                        } catch (error) {
+                          alert('Error deleting order')
+                        }
+                      }
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <X className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           ))}
