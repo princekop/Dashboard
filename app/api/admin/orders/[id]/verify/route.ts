@@ -59,6 +59,14 @@ export async function POST(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
+    const adminApiKey = process.env.PTERODACTYL_CLIENT_KEY
+    if (!adminApiKey) {
+      return NextResponse.json({ 
+        error: 'Server configuration error',
+        details: 'PTERODACTYL_CLIENT_KEY not configured'
+      }, { status: 500 })
+    }
+
     // Update order status
     await prisma.order.update({
       where: { id },
