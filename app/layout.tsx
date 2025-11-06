@@ -4,6 +4,7 @@ import { AuthProvider } from "@/lib/auth-context";
 import { CartProvider } from "@/lib/cart-context";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXTAUTH_URL || 'https://darkbyte.in'),
   title: "DarkByte Premium - Best Minecraft Server Hosting in India | Free & Paid Plans",
   description: "India's #1 Minecraft server hosting platform. Free hosting, premium Paper/Spigot servers, 24/7 support, instant setup. Best cloud hosting for Minecraft, Discord bots & game servers. Affordable plans starting ₹99/month.",
   keywords: [
