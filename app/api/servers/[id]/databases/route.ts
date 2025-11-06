@@ -21,7 +21,7 @@ async function getUserFromToken() {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken()
@@ -34,8 +34,9 @@ export async function GET(
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
+    const { id } = await params
     const server = await prisma.server.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!server || !server.pterodactylIdentifier) {
@@ -60,7 +61,7 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken()
@@ -73,8 +74,9 @@ export async function POST(
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
+    const { id } = await params
     const server = await prisma.server.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!server || !server.pterodactylIdentifier) {
@@ -108,7 +110,7 @@ export async function POST(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getUserFromToken()
@@ -121,8 +123,9 @@ export async function DELETE(
       return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
+    const { id } = await params
     const server = await prisma.server.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
 
     if (!server || !server.pterodactylIdentifier) {
