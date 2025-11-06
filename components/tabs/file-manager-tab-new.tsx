@@ -384,7 +384,7 @@ export function FileManagerTab({ serverId }: FileManagerTabProps) {
               ✨ AI Setup Assistant Available!
             </p>
             <p className="text-xs text-purple-600/80 dark:text-purple-400/80 mt-1">
-              Click "AI Setup" to automatically install plugins/mods, configure your server, and set everything up with just a simple request. Just tell the AI what you want!
+              Click &quot;AI Setup&quot; to automatically install plugins/mods, configure your server, and set everything up with just a simple request. Just tell the AI what you want!
             </p>
           </div>
         </div>

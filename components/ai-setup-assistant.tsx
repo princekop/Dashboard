@@ -211,7 +211,7 @@ export function AISetupAssistant({ serverId, open, onOpenChange }: AISetupAssist
             AI Setup Assistant
           </DialogTitle>
           <DialogDescription>
-            Tell me what you want to install and I'll find and set it up for you automatically
+            Tell me what you want to install and I&apos;ll find and set it up for you automatically
           </DialogDescription>
         </DialogHeader>
 
@@ -450,7 +450,7 @@ export function AISetupAssistant({ serverId, open, onOpenChange }: AISetupAssist
             <Card className="bg-yellow-500/10 border-yellow-500/20">
               <CardContent className="pt-4">
                 <p className="text-sm text-yellow-600 dark:text-yellow-400">
-                  No plugins/mods found matching "{results.searchQuery}". Try different keywords or check the spelling.
+                  No plugins/mods found matching &quot;{results.searchQuery}&quot;. Try different keywords or check the spelling.
                 </p>
               </CardContent>
             </Card>

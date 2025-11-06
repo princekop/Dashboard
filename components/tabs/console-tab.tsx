@@ -426,7 +426,7 @@ export function ConsoleTab({ serverId, serverIdentifier }: ConsoleTabProps) {
                         💡 Logs will appear here as the server generates output. Start the server to see logs.
                       </p>
                       <p className="text-xs text-gray-600">
-                        ✨ Logs persist between sessions - they'll be here when you return!
+                        ✨ Logs persist between sessions - they&apos;ll be here when you return!
                       </p>
                     </>
                   )}
