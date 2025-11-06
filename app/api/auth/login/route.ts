@@ -47,8 +47,9 @@ export async function POST(request: Request) {
       token,
     })
   } catch (error) {
+    console.error('Login error:', error)
     return NextResponse.json(
-      { error: 'Login failed' },
+      { error: process.env.NODE_ENV === 'development' ? String(error) : 'Login failed' },
       { status: 500 }
     )
   }
