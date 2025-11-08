@@ -184,3 +184,37 @@ model Bot {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
+
+model TrashItem {
+  id           String   @id @default(cuid())
+  serverId     String
+  name         String
+  type         String   // file, folder, plugin, mod
+  path         String
+  size         Int      @default(0)
+  originalData String?  // JSON string of original item data for restoration
+  deletedAt    DateTime @default(now())
+  expiresAt    DateTime @default(dbgenerated("NOW() + INTERVAL '30 days'")) // auto-delete after 30 days
+  createdAt    DateTime @default(now())
+  
+  @@index([serverId])
+  @@index([expiresAt])
+}
+
+model AIRequest {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   @default("console") // console, chat, other
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt])
+}
+
+model AICredit {
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  dailyLimit      Int      @default(50) // Free daily limit
+  purchasedLimit  Int      @default(0) // Additional purchased requests
+  lastReset       DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

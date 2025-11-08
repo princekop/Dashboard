@@ -244,7 +244,7 @@ export default function ServicesPage() {
                           variant="default" 
                           className="flex-1 shadow-sm" 
                           onClick={() => {
-                            router.push(`/dashboard/servers/${server.id}`)
+                            router.push(`/dashboard/servers/${server.id}/console`)
                           }}
                           disabled={!server.pterodactylIdentifier}
                         >

@@ -56,10 +56,30 @@ export async function POST(
       installPath = '/mods'
     }
 
-    // Download file
+    // Download file with timeout and proper error handling
     console.log(`Downloading ${filename} from ${downloadUrl}`)
-    const fileResponse = await axios.get(downloadUrl, { responseType: 'arraybuffer' })
-    const fileData = Buffer.from(fileResponse.data)
+    let fileData: Buffer
+    try {
+      const fileResponse = await axios.get(downloadUrl, { 
+        responseType: 'arraybuffer',
+        timeout: 60000, // 60 second timeout for large files
+        maxContentLength: 100 * 1024 * 1024, // 100MB max
+        maxBodyLength: 100 * 1024 * 1024,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (compatible; ServerManager/1.0)'
+        }
+      })
+      fileData = Buffer.from(fileResponse.data)
+      console.log(`Downloaded ${fileData.length} bytes`)
+    } catch (downloadError: any) {
+      console.error('Download failed:', downloadError.message)
+      return NextResponse.json({ 
+        error: 'Failed to download plugin/mod',
+        details: downloadError.code === 'ECONNABORTED' 
+          ? 'Download timeout - file too large or slow connection' 
+          : downloadError.message
+      }, { status: 500 })
+    }
 
     // Upload to server
     console.log(`Uploading ${filename} to ${installPath}`)
@@ -88,27 +108,48 @@ export async function POST(
     const uploadUrl = `${config.panelUrl}/api/client/servers/${server.pterodactylIdentifier}/files/upload`
     
     // Get upload URL
-    const uploadTokenRes = await axios.get(uploadUrl, {
-      headers: {
-        'Authorization': `Bearer ${adminApiKey}`,
-        'Accept': 'application/json'
-      }
-    })
-
-    const uploadEndpoint = uploadTokenRes.data.attributes.url
+    let uploadEndpoint: string
+    try {
+      const uploadTokenRes = await axios.get(uploadUrl, {
+        headers: {
+          'Authorization': `Bearer ${adminApiKey}`,
+          'Accept': 'application/json'
+        },
+        timeout: 10000
+      })
+      uploadEndpoint = uploadTokenRes.data.attributes.url
+    } catch (tokenError: any) {
+      console.error('Failed to get upload token:', tokenError.message)
+      return NextResponse.json({ 
+        error: 'Failed to get upload token',
+        details: tokenError.message
+      }, { status: 500 })
+    }
 
     // Upload file
-    const FormData = require('form-data')
-    const form = new FormData()
-    form.append('files', fileData, filename)
+    try {
+      const FormData = require('form-data')
+      const form = new FormData()
+      form.append('files', fileData, filename)
 
-    await axios.post(`${uploadEndpoint}&directory=${encodeURIComponent(installPath)}`, form, {
-      headers: {
-        ...form.getHeaders()
-      },
-      maxContentLength: Infinity,
-      maxBodyLength: Infinity
-    })
+      await axios.post(`${uploadEndpoint}&directory=${encodeURIComponent(installPath)}`, form, {
+        headers: {
+          ...form.getHeaders()
+        },
+        maxContentLength: Infinity,
+        maxBodyLength: Infinity,
+        timeout: 120000 // 2 minute timeout for upload
+      })
+      console.log(`Successfully uploaded ${filename}`)
+    } catch (uploadError: any) {
+      console.error('Upload failed:', uploadError.message)
+      return NextResponse.json({ 
+        error: 'Failed to upload file to server',
+        details: uploadError.code === 'ECONNABORTED' 
+          ? 'Upload timeout - file too large' 
+          : uploadError.message
+      }, { status: 500 })
+    }
 
     // Restart server if needed
     let restarted = false
