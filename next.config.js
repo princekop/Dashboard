@@ -1,12 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  reactStrictMode: false, // Disable for faster builds
+  reactStrictMode: false,
   eslint: {
-    ignoreDuringBuilds: true, // Skip ESLint during build
+    ignoreDuringBuilds: true,
   },
   typescript: {
-    ignoreBuildErrors: true, // Skip TS errors during build
+    ignoreBuildErrors: true,
   },
+  
+  // Reduce memory usage during build
+  swcMinify: false,
   
   async headers() {
     return [
@@ -51,15 +54,10 @@ const nextConfig = {
   // Production optimizations
   compress: true,
   poweredByHeader: false,
-  generateEtags: false,
-  
-  // Experimental features for faster builds
-  experimental: {
-    optimizePackageImports: ['lucide-react'],
-  },
   
   // Optimize images
   images: {
+    unoptimized: true, // Disable image optimization to save memory
     remotePatterns: [
       {
         protocol: 'https',
@@ -68,8 +66,21 @@ const nextConfig = {
     ],
   },
   
-  // Webpack config
-  webpack: (config, { isServer }) => {
+  // Webpack config - reduce memory
+  webpack: (config, { isServer, webpack }) => {
+    // Reduce memory usage
+    config.optimization = {
+      ...config.optimization,
+      moduleIds: 'deterministic',
+      splitChunks: {
+        chunks: 'all',
+        cacheGroups: {
+          default: false,
+          vendors: false,
+        },
+      },
+    }
+    
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -78,6 +89,7 @@ const nextConfig = {
         tls: false,
       }
     }
+    
     return config
   },
 }
