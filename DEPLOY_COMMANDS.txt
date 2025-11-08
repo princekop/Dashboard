@@ -3,20 +3,34 @@ git add .
 git commit -m "Production ready with PostgreSQL, admin features, and security"
 git push origin main
 
-=== VPS DEPLOYMENT (DEV MODE - WORKS GREAT!) ===
-# Build is too large, running in dev mode instead
+=== BUILD ON LOCAL PC (RECOMMENDED) ===
+# On Windows PC:
+$env:NODE_OPTIONS="--max-old-space-size=8192"
+npm run build
 
+# Then deploy .next folder to VPS via SCP or Git
+
+=== VPS DEPLOYMENT (IF BUILD WORKS) ===
 cd ~/apps/darkbyte-dashboard
 git pull origin main
 npm install
 npx prisma generate
 npx prisma migrate deploy
+NODE_OPTIONS="--max-old-space-size=8192" npm run build
+pm2 delete all
+pm2 start npm --name "dashboard" -- start
+pm2 save
 
-# Run in development mode (faster, no build needed)
+=== VPS DEPLOYMENT (DEV MODE - IF BUILD FAILS) ===
+cd ~/apps/darkbyte-dashboard
+git pull origin main
+npm install
+npx prisma generate
+npx prisma migrate deploy
 pm2 delete all
 pm2 start "npm run dev" --name "dashboard"
 pm2 save
-pm2 logs dashboard --lines 20
+pm2 logs dashboard
 
 === FIRST TIME VPS SETUP ===
 # Install dependencies
