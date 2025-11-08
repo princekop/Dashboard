@@ -1,7 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  swcMinify: true,
   
   async headers() {
     return [
@@ -43,8 +42,10 @@ const nextConfig = {
     ]
   },
   
-  // Enable standalone output for production
-  output: 'standalone',
+  // Production optimizations
+  compress: true,
+  poweredByHeader: false,
+  generateEtags: false,
   
   // Optimize images
   images: {
