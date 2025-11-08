@@ -3,21 +3,22 @@ git add .
 git commit -m "Production ready with PostgreSQL, admin features, and security"
 git push origin main
 
-=== VPS DEPLOYMENT (CRITICAL FIXES) ===
-# On VPS, run these commands in order:
+=== VPS DEPLOYMENT (SKIP BUILD - RUN DEV MODE) ===
+# Your VPS has low RAM, so we'll run in dev mode (works fine!)
 
 cd ~/apps/darkbyte-dashboard
 git pull origin main
-rm -rf node_modules .next
 npm install
 npx prisma generate
 npx prisma migrate deploy
 
-# Build with increased memory (REQUIRED for large apps)
-NODE_OPTIONS="--max-old-space-size=4096" npm run build
+# Delete old PM2 processes
+pm2 delete all
 
-pm2 restart all
-pm2 logs --lines 50
+# Start in dev mode (no build needed!)
+pm2 start npm --name "dashboard" -- run dev
+pm2 save
+pm2 logs dashboard --lines 50
 
 === FIRST TIME VPS SETUP ===
 # Install dependencies
