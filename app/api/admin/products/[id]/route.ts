@@ -46,6 +46,8 @@ export async function PATCH(
   } catch (error) {
     console.error('Failed to update product:', error)
     return NextResponse.json({ error: 'Failed to update product' }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -69,5 +71,7 @@ export async function DELETE(
   } catch (error) {
     console.error('Failed to delete product:', error)
     return NextResponse.json({ error: 'Failed to delete product' }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }

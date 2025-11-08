@@ -46,12 +46,20 @@ export async function GET(
     const trashItems = await prisma.trashItem.findMany({
       where: { serverId: id },
       orderBy: { deletedAt: 'desc' }
+    }).catch((err) => {
+      console.error('Prisma trash query error:', err)
+      return []
     })
 
     return NextResponse.json({ items: trashItems })
   } catch (error) {
     console.error('Failed to list trash:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -106,7 +114,12 @@ export async function POST(
     return NextResponse.json({ item: trashItem })
   } catch (error) {
     console.error('Failed to move to trash:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -149,7 +162,12 @@ export async function PUT(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to restore item:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
@@ -198,6 +216,11 @@ export async function DELETE(
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Failed to delete item:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Internal server error',
+      details: process.env.NODE_ENV === 'development' ? String(error) : undefined
+    }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }

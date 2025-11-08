@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     // Get or create user's AI credit
     let credit = await prisma.aICredit.findUnique({
       where: { userId: user.id }
-    })
+    }).catch(() => null)
 
     if (!credit) {
       credit = await prisma.aICredit.create({
@@ -38,7 +38,11 @@ export async function GET(request: NextRequest) {
           purchasedLimit: 0,
           lastReset: new Date()
         }
-      })
+      }).catch(() => null)
+    }
+    
+    if (!credit) {
+      return NextResponse.json({ error: 'Failed to get AI credit info' }, { status: 500 })
     }
 
     // Check if we need to reset daily limit (every 24 hours)
@@ -50,7 +54,7 @@ export async function GET(request: NextRequest) {
       await prisma.aICredit.update({
         where: { userId: user.id },
         data: { lastReset: now }
-      })
+      }).catch(() => {})
       
       // Delete old requests (older than 24 hours)
       await prisma.aIRequest.deleteMany({
