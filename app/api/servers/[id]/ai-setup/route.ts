@@ -224,12 +224,8 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const adminApiKey = process.env.PTERODACTYL_CLIENT_KEY
-    if (!adminApiKey) {
-      return NextResponse.json({ 
-        error: 'Server configuration error',
-        details: 'PTERODACTYL_CLIENT_KEY not configured'
-      }, { status: 500 })
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
     }
 
     const { request: userRequest } = await request.json()
@@ -238,7 +234,7 @@ export async function POST(
     console.log(`Using AI: ${process.env.GEMINI_API_KEY ? 'Gemini API' : 'Direct Search (No AI)'}`)
 
     // Step 1: Detect server type and version
-    const serverInfo = await detectServerType(server.pterodactylIdentifier, adminApiKey)
+    const serverInfo = await detectServerType(server.pterodactylIdentifier, user.pterodactylApiKey)
     
     if (serverInfo.type === 'unknown') {
       return NextResponse.json({ 

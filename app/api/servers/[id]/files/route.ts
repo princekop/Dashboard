@@ -48,12 +48,16 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const directory = searchParams.get('directory') || '/'
 
     const files = await pterodactylService.listFiles(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       directory
     )
 
@@ -92,6 +96,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const body = await request.json()
     const { action, root, files, name, content, file } = body
 
@@ -99,7 +107,7 @@ export async function POST(
       case 'delete':
         await pterodactylService.deleteFile(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           root,
           files
         )
@@ -107,7 +115,7 @@ export async function POST(
       case 'create-folder':
         await pterodactylService.createFolder(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           root,
           name
         )
@@ -115,7 +123,7 @@ export async function POST(
       case 'rename':
         await pterodactylService.renameFile(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           root,
           files
         )
@@ -123,7 +131,7 @@ export async function POST(
       case 'compress':
         const result = await pterodactylService.compressFiles(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           root,
           files
         )
@@ -131,7 +139,7 @@ export async function POST(
       case 'decompress':
         await pterodactylService.decompressFile(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           root,
           file
         )
@@ -139,7 +147,7 @@ export async function POST(
       case 'write':
         await pterodactylService.writeFile(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           file,
           content
         )
@@ -147,7 +155,7 @@ export async function POST(
       case 'read':
         const fileContent = await pterodactylService.getFileContents(
           server.pterodactylIdentifier,
-          adminApiKey,
+          user.pterodactylApiKey,
           file
         )
         return NextResponse.json({ content: fileContent })

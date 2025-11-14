@@ -47,9 +47,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const allocations = await pterodactylService.listAllocations(
       server.pterodactylIdentifier,
-      adminApiKey
+      user.pterodactylApiKey
     )
 
     return NextResponse.json(allocations)
@@ -86,6 +90,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const config = await pterodactylService.getConfig()
     if (!config) {
       return NextResponse.json({ error: 'Pterodactyl not configured' }, { status: 500 })
@@ -96,7 +104,7 @@ export async function POST(
       {},
       {
         headers: {
-          'Authorization': `Bearer ${adminApiKey}`,
+          'Authorization': `Bearer ${user.pterodactylApiKey}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
         }
@@ -146,6 +154,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const allocationId = searchParams.get('allocationId')
 
@@ -162,7 +174,7 @@ export async function DELETE(
       `${config.panelUrl}/api/client/servers/${server.pterodactylIdentifier}/network/allocations/${allocationId}`,
       {
         headers: {
-          'Authorization': `Bearer ${adminApiKey}`,
+          'Authorization': `Bearer ${user.pterodactylApiKey}`,
           'Accept': 'application/json'
         }
       }

@@ -47,9 +47,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const backups = await pterodactylService.listBackups(
       server.pterodactylIdentifier,
-      adminApiKey
+      user.pterodactylApiKey
     )
 
     return NextResponse.json(backups)
@@ -87,12 +91,16 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const body = await request.json()
     const { name } = body
 
     const backup = await pterodactylService.createBackup(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       name
     )
 
@@ -131,6 +139,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const backupUuid = searchParams.get('uuid')
 
@@ -140,7 +152,7 @@ export async function DELETE(
 
     await pterodactylService.deleteBackup(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       backupUuid
     )
 

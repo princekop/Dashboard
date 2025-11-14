@@ -47,9 +47,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const wsCredentials = await pterodactylService.getWebSocketCredentials(
       server.pterodactylIdentifier,
-      adminApiKey
+      user.pterodactylApiKey
     )
 
     console.log('WebSocket credentials retrieved:', JSON.stringify(wsCredentials, null, 2))

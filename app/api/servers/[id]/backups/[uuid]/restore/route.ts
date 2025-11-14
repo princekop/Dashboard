@@ -47,9 +47,13 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     await pterodactylService.restoreBackup(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       uuid
     )
 

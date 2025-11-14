@@ -47,9 +47,13 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const databases = await pterodactylService.listDatabases(
       server.pterodactylIdentifier,
-      adminApiKey
+      user.pterodactylApiKey
     )
 
     return NextResponse.json(databases)
@@ -87,6 +91,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const body = await request.json()
     const { database, remote } = body
 
@@ -96,7 +104,7 @@ export async function POST(
 
     const newDatabase = await pterodactylService.createDatabase(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       database,
       remote || '%'
     )
@@ -136,6 +144,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const { searchParams } = new URL(request.url)
     const databaseId = searchParams.get('databaseId')
 
@@ -145,7 +157,7 @@ export async function DELETE(
 
     await pterodactylService.deleteDatabase(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       databaseId
     )
 

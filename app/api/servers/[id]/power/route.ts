@@ -47,6 +47,10 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
+    if (!user.pterodactylApiKey) {
+      return NextResponse.json({ error: 'User API key not configured' }, { status: 400 })
+    }
+
     const body = await request.json()
     const { action } = body
 
@@ -56,7 +60,7 @@ export async function POST(
 
     await pterodactylService.sendPowerAction(
       server.pterodactylIdentifier,
-      adminApiKey,
+      user.pterodactylApiKey,
       action
     )
 
